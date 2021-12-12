@@ -1,0 +1,37 @@
+---
+- name: Configure Squid Proxy Server
+  hosts: localhost
+  tasks:
+    - name: Install Squid Proxy Server Packages
+      yum:
+        name: squid*
+        state: present
+    - name: Start the Squid Proxy Server service
+      service: 
+        name: squid
+        state: started
+    - name: Add the firewall rules
+      firewalld:
+        port: 3128/tcp
+        permanent: true
+        state: enabled
+    - name: Reload the firewall for new rules
+      systemd:
+        name: firewalld
+        state: reloaded
+    - name: Make changes in configuration file of squid proxy server
+      lineinfile:
+        path: /etc/squid/squid.conf
+        line: 'acl localnet src localhost'
+        insertbefore: acl localnet src 10.0.0.0/8
+    - name: Make changes in configuration file of squid proxy server
+      lineinfile:
+        path: /etc/squid/squid.conf
+        line: 'http_access allow localnet'
+        insertbefore: acl localnet src localhost
+    - name: Restart Squid Proxy Server Service
+      service:
+        name: squid
+        state: restarted
+...
+
